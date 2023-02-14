@@ -2,135 +2,110 @@
 #include "arithmetic.h"
 #include <gtest.h>
 
-TEST(TPostfix, can_create_tpostfix_without_infix)
-{
-    ASSERT_NO_THROW(TPostfix test);
+TEST(TPostfix, can_parse_negative_number) {
+    string str = "-3+1";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_number_with_point) {
+    string str = "-3.2+1/5.6";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_long_number) {
+    string str = "-345+1156.4-876";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_variables) {
+    string str = "s-v/h";
+    TPostfix expression(str);
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_long_variables) {
+    string str = "first_argument/second_arfument-third_argument";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_variables_and_numbers) {
+    string str = "first_argument/second_arfument-third_argument/2-187+18";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_parse_variables_with_numbers) {
+    string str = "a1/a2-a3";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_when_empty_string) {
+    string str = "";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_when_empty_brackets) {
+    string str = " ()+5";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_brackets_expression_1) {
+    string str = " (2+3)";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, can_parse_brackets_expression_2) {
+    string str = " (2+3)-5*(16+(43-8)*(-1))";
+    ASSERT_NO_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_parse_with_wrong_brackets_expression) {
+    string str = " (2+3)-5*(16+(43-8)*(-1))))";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_parse_expression_with_wrong_number_points) {
+    string str = "..5+6";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_parse_expression_with_wrong_number_point_minus) {
+    string str = "-.5+6";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_expression_with_wrong_operators) {
+    string str = "8+-6";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_expression_with_lost_operators) {
+    string str = "8-6h-7";
+    ASSERT_ANY_THROW(TPostfix expression(str));
+}
+TEST(TPostfix, throws_when_invalid_symbols) {
+    string str = "a+6&7";
+    ASSERT_ANY_THROW(TPostfix expression(str));
 }
 
-TEST(TPostfix, can_create_tpostfix_with_infix)
+TEST(TPostfix, can_get_infix)
 {
-    ASSERT_NO_THROW(TPostfix test("5+5"));
+    TPostfix str("abacab-18*(6*7)-156");
+    EXPECT_EQ("abacab-18*(6*7)-156", str.GetInfix());
 }
 
-TEST(TPostfix, can_set_other_infix)
+TEST(TPostfix, can_get_postfix)
 {
-    TPostfix test("5+5");
-    ASSERT_NO_THROW(test.setTPostfix("5"));
+    TPostfix expression("12*((3+4*5)-7)");
+    EXPECT_EQ(" 12 3 4 5 * + 7 - *", expression.GetPostfix());
+}
+TEST(TPostfix, can_get_postfix_2)
+{
+    TPostfix expression("2*x+3");
+    EXPECT_EQ(" 2 x * 3 +", expression.GetPostfix());
 }
 
-TEST(TPostfix, can_convert_to_lexem_array)
+
+TEST(TPostfix, can_calculate_expression_with_numbers)
 {
-    TPostfix test("56.2+576.E89");
-    string array[3] = { "56.2", "+", "576.E89" };
-    for (size_t i = 0; i < 3; i++)
-        EXPECT_EQ(test.getLexem(i), array[i]);
+    TPostfix expression("12*((3+4*5)-7)");
+    ostream output(nullptr);
+    double result = expression.Calculate(cin, output);
+    double expected = 12 * ((3 + 4 * 5) - 7);
+    EXPECT_EQ(expected, result);
 }
 
-TEST(TPostfix, throw_if_opening_bracket_in_wrong_position)
+TEST(TPostfix, can_calculate_expression_with_numbers_and_variables)
 {
-    ASSERT_ANY_THROW(TPostfix test("9("));
-}
+    TPostfix expression(" abacaba-18*(6*7)-156");
+    istringstream values(" 1");
+    ostream output(nullptr);
+    double result = expression.Calculate(values, output);
+    double expected = 1 - 18 * (6 * 7) - 156;
 
-TEST(TPostfix, throw_if_closing_bracket_in_wrong_position)
-{
-    ASSERT_ANY_THROW(TPostfix test("-)*9"));
-}
-
-TEST(TPostfix, throw_if_operation_in_wrong_position)
-{
-    ASSERT_ANY_THROW(TPostfix test("++9"));
-}
-
-TEST(TPostfix, throw_if_minus_in_wrong_position)
-{
-    ASSERT_ANY_THROW(TPostfix test("(9)-"));
-}
-
-TEST(TPostfix, throw_if_name_variables_incorrect)
-{
-    ASSERT_ANY_THROW(TPostfix test("T"));
-    ASSERT_ANY_THROW(TPostfix test("aa"));
-}
-
-TEST(TPostfix, throw_if_exponential_notation_is_wrong)
-{
-    TPostfix test;
-    ASSERT_ANY_THROW(test.setTPostfix("9E+6"));
-}
-
-TEST(TPostfix, throw_if_number_notation_is_wrong)
-{
-    TPostfix test;
-    ASSERT_ANY_THROW(test.setTPostfix(".6"));
-    ASSERT_ANY_THROW(test.setTPostfix("6."));
-}
-
-TEST(TPostfix, throw_if_bracket_number_isnt_equal)
-{
-    TPostfix test;
-    ASSERT_ANY_THROW(test.setTPostfix("((9+6)"));
-}
-
-TEST(TPostfix, correct_operation_priority)
-{
-    TPostfix test;
-    EXPECT_EQ(test.operation_priority("+"), 1);
-    EXPECT_EQ(test.operation_priority("-"), 1);
-    EXPECT_EQ(test.operation_priority("*"), 2);
-    EXPECT_EQ(test.operation_priority("/"), 2);
-    EXPECT_EQ(test.operation_priority("~"), 3);
-    EXPECT_EQ(test.operation_priority("("), 0);
-}
-
-TEST(TPostfix, correct_converting_string_to_number)
-{
-    TPostfix test;
-    EXPECT_EQ(test.toNumber("96.678"), 96.678);
-    EXPECT_EQ(test.toNumber("-96"), -96);
-    double temp;
-    temp = floor(test.toNumber("-96.45") * pow(10.0, 16)) / pow(10.0, 16);
-    EXPECT_EQ(temp, -96.45);
-    temp = floor(test.toNumber("-9.456E2") * pow(10.0, 16)) / pow(10.0, 16);
-    EXPECT_EQ(temp, -945.6);
-}
-
-TEST(TPostfix, correct_converting_to_postfix_form)
-{
-    string temp = "6989+";
-    TPostfix test("69+89");
-    test.toPostfix();
-    EXPECT_EQ(test.getPostfix(), temp);
-
-    temp = "896978+8989~*-*9+";
-    test.setTPostfix("89*(69+78-89*-89)+9");
-    test.toPostfix();
-    EXPECT_EQ(test.getPostfix(), temp);
-}
-
-TEST(TPostfix, correct_calculating)
-{
-    double temp = 69.0 + 89.0;
-    TPostfix test("69+89");
-    test.toPostfix();
-    test.toCalculate();
-    EXPECT_EQ(test.getResult(), temp);
-
-    temp = 89 * (69 + 78 - 89 * (-89)) + 9;
-    test.setTPostfix("89*(69+78-89*-89)+9");
-    test.toPostfix();
-    test.toCalculate();
-    EXPECT_EQ(test.getResult(), temp);
-
-    temp = 5 - (-(-(-(4))));
-    test.setTPostfix("5----4");
-    test.toPostfix();
-    test.toCalculate();
-    EXPECT_EQ(test.getResult(), temp);
-}
-
-TEST(TPostfix, throw_if_division_by_zero)
-{
-    TPostfix test("8/0");
-    test.toPostfix();
-    EXPECT_ANY_THROW(test.toCalculate(););
+    EXPECT_EQ(expected, result);
 }

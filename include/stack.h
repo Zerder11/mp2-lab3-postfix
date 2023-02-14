@@ -7,86 +7,71 @@
 // - получение количества элементов в стеке
 // - очистка стека
 // при вставке в полный стек должна перевыделяться память
-#pragma once
+#ifndef __STACK_H__
+#define __STACK_H__
 
-template<class T>
+#include <vector>
+#include <cstddef>
+#include <stdexcept>
+
+using namespace std;
+template <typename T>
 class Stack
 {
-private:
-	int index = -1;
-	size_t dataSize;
-	T* data;
+
+    vector<T> vec;
+    size_t sz;
 public:
-	Stack()
-	{
-		dataSize = 5;
-		data = new T[dataSize];
-	}
 
-	Stack(const Stack& temp) // Copy constructor
-	{
-		this->index = temp.index;
-		this->dataSize = temp.dataSize;
-		this->data = new T[this->dataSize];
+    Stack()
+    {
+        sz = 0;
+    }
+    Stack(size_t size) : Stack()
+    {
+        vec.reserve(size);
+    }
+    Stack(size_t size, const T* arr) : Stack(size)
+    {
+        for (int i = 0; i < size; i++)
+            vec.push_back(arr[i]);
+        sz = size;
+    }
 
-		for (int i = 0; i < this->dataSize; i++)
-			this->data[i] = temp.data[i];
-	}
+    size_t size()
+    {
+        return sz;
+    }
+    bool empty()
+    {
+        return sz == 0;
+    }
 
-	~Stack()
-	{
-		delete[] data;
-	}
-
-	bool isEmpty() // Empty check
-	{
-		return index == -1;
-	}
-
-	void push(T temp) // Add element on stack top
-	{
-		if ((index + 1) == dataSize)
-		{
-			size_t tempSize = this->dataSize;
-			T* temp = new T[tempSize];
-			for (size_t i = 0; i < tempSize; i++)
-				temp[i] = this->data[i];
-
-			delete[] this->data;
-
-			dataSize *= 2;
-			this->data = new T[dataSize];
-			for (int i = 0; i < tempSize; i++)
-				data[i] = temp[i];
-
-			delete[] temp;
-		}
-
-		data[++index] = temp;
-	}
-
-	T pop() // Get top element with delete one in stack
-	{
-		if (!isEmpty())
-			return data[index--];
-		throw std::out_of_range("Stack is empty");
-	}
-
-	T top() // Get top element without delete one in stack
-	{
-		if (!isEmpty())
-			return data[index];
-		throw std::out_of_range("Stack is empty");
-	}
-
-	int size() // Get number of elements
-	{
-		return index + 1;
-	}
-
-	void clear() //Delete all elements in stack without change his data size
-	{
-		index = -1;
-	}
+    bool operator==(const Stack& st)
+    {
+        if (this == &st)
+            return true;
+        return st.vec == vec;
+    }
+    void push(const T& elem)
+    {
+        vec.push_back(elem);
+        sz++;
+    }
+    T top()
+    {
+        if (empty())
+            throw std::out_of_range("Empty stack");
+        return vec[sz - 1];
+    }
+    void pop()
+    {
+        if (empty())
+            throw std::out_of_range("Empty stack");
+        vec.pop_back();
+        sz--;
+    }
 
 };
+
+#endif

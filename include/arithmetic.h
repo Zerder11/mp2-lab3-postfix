@@ -1,57 +1,80 @@
 ﻿// объявление функций и классов для вычисления арифметических выражений
-#pragma once
+//#pragma once
 
-#include <iostream>
-#include <iomanip>
-#include "stack.h"
+#include<iostream>
 #include <string>
+#include "stack.h"
 
+#include <vector>
+#include <map>
+/*
+//#include <exception>
+//#include <string>
+//#include <iostream>
+//#include <map>
+//#include <vector>
+#include <sstream>
+#include <exception>
+using std::string;
+using std::cout;
+using std::cin;
+using std::endl;
+using std::map;
+using std::invalid_argument;
+using std::out_of_range;
+using std::exception;
+using std::to_string;
+*/
+//#include <stack>
 using namespace std;
 
 class TPostfix
 {
-private:
-	size_t size;
-	string infix, postfix;
-	string* data;
-	Stack<string> operations;
-	Stack<double> numbers;
-	double result;
-	int errornumber;
-	string errorstring;
+    string input_expression;
+    enum lexemType {
+        nothing,//начало выражения
+        number, // 4; -4; .4; 
+        variable, //переменная____ a;my_argument - right_____-a;a1 - wrong!
+        operation, //+, -, *, /
+        operator_open, // (
+        operator_close // )
+    };
+    vector<pair<lexemType, string>> infix; //набор лексем со значениями
+    vector<pair<lexemType, string>> postfix;
+    //static 
+    map<char, int> priority;
+    map<string, double> operands; //набор переменных(variable) со значениями (по умолчанию в них нули)
 
+    bool isNumber(char c);      // 0 ... 9
+    bool isLetter(char c); // a ... z, A ... Z, _
+    bool isOperation(char c);   // +, -, *, /
+    bool isMinus(char c);       // -
+    bool isPoint(char c);       // .
+    bool isOperator_open(char c);       // (
+    bool isOperator_close(char c);         // )
+
+    void Parse(); //разложить на лексемы
+
+    void GetValues(istream& input, ostream& output);
 public:
 
-	TPostfix(); // Create empty class object
+void ToPostfix();//сделать обратную польскую запись для подсчета
+TPostfix(string _input_expression) :input_expression(_input_expression) {
+    this->priority = { {'+',1},{'-',1},{'*',2},{'/',2} };
+    if (input_expression.empty())
+        throw invalid_argument("Creating arithmetic expression from an empty string");
+    ToPostfix();
+}
+string GetInfix() { return input_expression; }
 
-	TPostfix(string _infix); // Create string arithmetic expression
+string GetPostfix() {
+    string ans;
+    for (auto& i : postfix) {
+        ans += ' ';
+        ans += i.second;
+    }
+    return ans;
+}
 
-	~TPostfix(); // Destructor clears data memory
-
-	void setTPostfix(string _infix); // Set some string
-
-	void toLexem(); // Converting an expression into lexem array
-
-	void stringCheck(string it); // Checking operand input correctness
-
-	void toVariable(); // Enter variable
-
-	size_t operation_priority(string operation); // Get operation priority in size_t
-
-	void toPostfix(); // Converting infix form  into postfix one
-
-	double toNumber(string number); // Converting string into double
-
-	void toCalculate(); // Calculating
-
-	string getPostfix(); // Get postfix form in string
-
-	double getResult(); // Get result of calculating in double
-
-	string getInfix(); // Get infix form in string
-
-	string getLexem(int n); // Output lexem
-
-	void getError(); // Output all symbols to symbol with error
-
+double Calculate(istream& input, ostream& output);// Ввод переменных, вычисление по постфиксной форме
 };
